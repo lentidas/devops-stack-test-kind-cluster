@@ -12,6 +12,8 @@ module "kind" {
   cluster_name = local.cluster_name
   base_domain  = "127-0-0-1.nip.io" # I need this line in Windows to access my pods in WSL 2
   
+  # Need to use < v1.25 because of Keycloak trying to deploy a PodDisruptionBudget https://kubernetes.io/docs/reference/using-api/deprecation-guide/#poddisruptionbudget-v125 
+  kubernetes_version = "v1.24.7"
 }
 
 #######
@@ -102,3 +104,18 @@ module "cert-manager" {
 }
 
 
+module "oidc" {
+  source = "git::https://github.com/camptocamp/devops-stack-module-keycloak.git"
+
+  cluster_name = module.kind.cluster_name
+  argocd = { # TODO Simplify this variable in the Keycloak module because we only need the namespace and not the domain
+    namespace = local.argocd_namespace
+    domain    = module.argocd_bootstrap.argocd_domain
+  }
+  base_domain    = module.kind.base_domain
+  cluster_issuer = local.cluster_issuer
+
+  depends_on = [module.ingress, module.cert-manager]
+}
+
+########
