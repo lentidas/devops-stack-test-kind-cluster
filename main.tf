@@ -67,3 +67,27 @@ module "argocd_bootstrap" {
   depends_on = [module.kind]
 }
 
+#######
+
+# Cluster apps
+
+module "ingress" {
+  source = "git::https://github.com/camptocamp/devops-stack-module-traefik.git//nodeport"
+
+  cluster_name     = module.kind.cluster_name
+  base_domain      = module.kind.base_domain
+  argocd_namespace = local.argocd_namespace
+
+  # We cannot have multiple Traefik replicas binding to the same ports while both are deployed on 
+  # the same KinD container in Docker, which is our case as we only deploy the control-plane node. 
+  helm_values = [{
+    traefik = {
+      deployment = {
+        replicas = 1
+      }
+    }
+  }]
+
+  depends_on = [module.argocd_bootstrap]
+}
+
