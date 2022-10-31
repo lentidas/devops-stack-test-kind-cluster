@@ -10,8 +10,8 @@ module "kind" {
   source = "../devops-stack-module-kind" # TODO change to git source eventually
 
   cluster_name = local.cluster_name
-  base_domain  = "127-0-0-1.nip.io" # I need this line in Windows to access my pods in WSL 2
-  
+  # base_domain  = "127-0-0-1.nip.io" # I need this line in Windows to access my pods in WSL 2
+
   # Need to use < v1.25 because of Keycloak trying to deploy a PodDisruptionBudget https://kubernetes.io/docs/reference/using-api/deprecation-guide/#poddisruptionbudget-v125 
   kubernetes_version = "v1.24.7"
 }
