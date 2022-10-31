@@ -91,3 +91,14 @@ module "ingress" {
   depends_on = [module.argocd_bootstrap]
 }
 
+module "cert-manager" {
+  source = "git::https://github.com/camptocamp/devops-stack-module-cert-manager.git//self-signed"
+
+  cluster_name     = module.kind.cluster_name
+  base_domain      = module.kind.base_domain
+  argocd_namespace = local.argocd_namespace
+
+  depends_on = [module.argocd_bootstrap]
+}
+
+
