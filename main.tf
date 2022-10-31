@@ -13,3 +13,57 @@ module "kind" {
   base_domain  = "127-0-0-1.nip.io" # I need this line in Windows to access my pods in WSL 2
   
 }
+
+#######
+
+# Providers
+
+provider "kubernetes" {
+  host                   = module.kind.kubernetes_host
+  client_certificate     = module.kind.kubernetes_client_certificate
+  client_key             = module.kind.kubernetes_client_key
+  cluster_ca_certificate = module.kind.kubernetes_cluster_ca_certificate
+}
+
+provider "helm" {
+  kubernetes {
+    host               = module.kind.kubernetes_host
+    client_certificate = module.kind.kubernetes_client_certificate
+    client_key         = module.kind.kubernetes_client_key
+    insecure           = true # This is needed because the Certificate Authority is self-signed.
+  }
+}
+
+provider "argocd" {
+  server_addr                 = "127.0.0.1:8080"
+  auth_token                  = module.argocd_bootstrap.argocd_auth_token
+  insecure                    = true
+  plain_text                  = true
+  port_forward                = true
+  port_forward_with_namespace = local.argocd_namespace
+
+  kubernetes {
+    host                   = module.kind.kubernetes_host
+    client_certificate     = module.kind.kubernetes_client_certificate
+    client_key             = module.kind.kubernetes_client_key
+    cluster_ca_certificate = module.kind.kubernetes_cluster_ca_certificate
+  }
+}
+
+#######
+
+# Bootstrap Argo CD
+
+module "argocd_bootstrap" {
+  source = "git::https://github.com/camptocamp/devops-stack-module-argocd.git//bootstrap"
+
+  cluster_name = module.kind.cluster_name
+  base_domain  = module.kind.base_domain
+
+  # An empty cluster issuer is the only way I got the bootstrap Argo CD to be deployed.
+  # The `ca-issuer` is only available after we deployed `cert-manager`.
+  cluster_issuer = ""
+
+  depends_on = [module.kind]
+}
+
