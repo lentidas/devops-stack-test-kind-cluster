@@ -1,6 +1,7 @@
 ### Ignored files and folders ###
 
 .terraform*
+terraform.tfstate*
 secrets.yml
 
 
