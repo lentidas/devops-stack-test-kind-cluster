@@ -118,4 +118,116 @@ module "oidc" {
   depends_on = [module.ingress, module.cert-manager]
 }
 
+module "minio" {
+  # source = "git::https://github.com/camptocamp/devops-stack-module-minio?ref=module_revamping"
+  source = "../devops-stack-module-minio"
+
+  cluster_name     = module.kind.cluster_name
+  base_domain      = module.kind.base_domain
+  argocd_namespace = local.argocd_namespace
+  target_revision = "module_revamping"
+
+  minio_buckets = [
+    "thanos",
+    "loki",
+  ]
+
+  # Deactivate the ServiceMonitor because we need to deploy MinIO before the monitoring stack.
+  helm_values = [{
+    minio = {
+      metrics = {
+        serviceMonitor = {
+          enabled = false
+        }
+      }
+    }
+  }]
+
+  depends_on = [module.ingress, module.cert-manager]
+}
+
+module "thanos" {
+  source = "../devops-stack-module-thanos/kind"
+
+  cluster_name     = module.kind.cluster_name
+  argocd_namespace = local.argocd_namespace
+  base_domain      = module.kind.base_domain
+  cluster_issuer   = local.cluster_issuer
+
+  metrics_storage = {
+    bucket_name       = "thanos"
+    endpoint          = module.minio.endpoint
+    access_key        = module.minio.access_key
+    secret_access_key = module.minio.secret_key
+  }
+
+  thanos = {
+    oidc = module.oidc.oidc
+  }
+
+  depends_on = [module.oidc]
+}
+
+module "prometheus-stack" {
+  source = "../devops-stack-module-kube-prometheus-stack/kind"
+
+  cluster_name     = module.kind.cluster_name
+  argocd_namespace = local.argocd_namespace
+  base_domain      = module.kind.base_domain
+  cluster_issuer   = local.cluster_issuer
+
+  metrics_storage = {
+    bucket_name       = "thanos"
+    endpoint          = module.minio.endpoint
+    access_key        = module.minio.access_key
+    secret_access_key = module.minio.secret_key
+  }
+
+  prometheus = {
+    oidc = module.oidc.oidc
+  }
+  alertmanager = {
+    oidc = module.oidc.oidc
+  }
+  grafana = {
+    # enable = false # Optional
+    additional_data_sources = true
+  }
+
+  depends_on = [module.oidc]
+}
+
+module "loki-stack" {
+  source = "../devops-stack-module-loki-stack/k3s"
+
+  cluster_name     = module.kind.cluster_name
+  argocd_namespace = local.argocd_namespace
+  base_domain      = module.kind.base_domain
+
+  logs_storage = {
+    bucket_name       = "loki"
+    endpoint          = module.minio.endpoint
+    access_key        = module.minio.access_key
+    secret_access_key = module.minio.secret_key
+  }
+
+  depends_on = [module.prometheus-stack]
+}
+
+module "grafana" {
+  source = "git::https://github.com/camptocamp/devops-stack-module-grafana.git?ref=v1.0.0-alpha.1"
+
+  cluster_name     = module.kind.cluster_name
+  argocd_namespace = local.argocd_namespace
+  base_domain      = module.kind.base_domain
+  cluster_issuer   = local.cluster_issuer
+
+  grafana = {
+    oidc = module.oidc.oidc
+  }
+
+  depends_on = [module.prometheus-stack, module.loki-stack]
+}
+
+
 ########
