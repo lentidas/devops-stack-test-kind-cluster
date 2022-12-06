@@ -7,12 +7,13 @@ locals {
 }
 
 module "kind" {
-  source = "../devops-stack-module-kind" # TODO change to git source eventually
+  source = "git::https://github.com/camptocamp/devops-stack-module-kind.git?ref=v1.0.0"
 
   cluster_name = local.cluster_name
   # base_domain  = "127-0-0-1.nip.io" # I need this line in Windows to access my pods in WSL 2
 
-  # Need to use < v1.25 because of Keycloak trying to deploy a PodDisruptionBudget https://kubernetes.io/docs/reference/using-api/deprecation-guide/#poddisruptionbudget-v125 
+  # Need to use < v1.25 because of Keycloak trying to deploy a PodDisruptionBudget
+  # https://kubernetes.io/docs/reference/using-api/deprecation-guide/#poddisruptionbudget-v125 
   kubernetes_version = "v1.24.7"
 }
 
@@ -57,7 +58,7 @@ provider "argocd" {
 # Bootstrap Argo CD
 
 module "argocd_bootstrap" {
-  source = "git::https://github.com/camptocamp/devops-stack-module-argocd.git//bootstrap"
+  source = "git::https://github.com/camptocamp/devops-stack-module-argocd.git//bootstrap?ref=v1.0.0-alpha.1"
 
   cluster_name = module.kind.cluster_name
   base_domain  = module.kind.base_domain
@@ -74,19 +75,35 @@ module "argocd_bootstrap" {
 # Cluster apps
 
 module "ingress" {
-  source = "git::https://github.com/camptocamp/devops-stack-module-traefik.git//nodeport"
+  source = "git::https://github.com/camptocamp/devops-stack-module-traefik.git//nodeport?ref=v1.0.0-alpha.4"
 
   cluster_name     = module.kind.cluster_name
   base_domain      = module.kind.base_domain
   argocd_namespace = local.argocd_namespace
 
   # We cannot have multiple Traefik replicas binding to the same ports while both are deployed on 
-  # the same KinD container in Docker, which is our case as we only deploy the control-plane node. 
+  # the same KinD container in Docker, which is our case as we only deploy the control-plane node.
+  # TODO Consider adding these modifications to the module directly.
   helm_values = [{
     traefik = {
       deployment = {
         replicas = 1
       }
+      nodeSelector = {
+        "ingress-ready" = "true"
+      }
+      tolerations = [
+        {
+          key      = "node-role.kubernetes.io/control-plane"
+          operator = "Equal"
+          effect   = "NoSchedule"
+        },
+        {
+          key      = "node-role.kubernetes.io/master"
+          operator = "Equal"
+          effect   = "NoSchedule"
+        }
+      ]
     }
   }]
 
@@ -94,7 +111,7 @@ module "ingress" {
 }
 
 module "cert-manager" {
-  source = "git::https://github.com/camptocamp/devops-stack-module-cert-manager.git//self-signed"
+  source = "git::https://github.com/camptocamp/devops-stack-module-cert-manager.git//self-signed?ref=v1.0.0-alpha.2"
 
   cluster_name     = module.kind.cluster_name
   base_domain      = module.kind.base_domain
@@ -103,29 +120,30 @@ module "cert-manager" {
   depends_on = [module.argocd_bootstrap]
 }
 
-
 module "oidc" {
-  source = "git::https://github.com/camptocamp/devops-stack-module-keycloak.git"
+  source = "git::https://github.com/camptocamp/devops-stack-module-keycloak?ref=v1.0.0-alpha.1"
 
-  cluster_name = module.kind.cluster_name
+  cluster_name   = module.kind.cluster_name
+  base_domain    = module.kind.base_domain
+  cluster_issuer = local.cluster_issuer
+
   argocd = { # TODO Simplify this variable in the Keycloak module because we only need the namespace and not the domain
     namespace = local.argocd_namespace
     domain    = module.argocd_bootstrap.argocd_domain
   }
-  base_domain    = module.kind.base_domain
-  cluster_issuer = local.cluster_issuer
 
   depends_on = [module.ingress, module.cert-manager]
 }
 
 module "minio" {
-  # source = "git::https://github.com/camptocamp/devops-stack-module-minio?ref=module_revamping"
-  source = "../devops-stack-module-minio"
+  # source = "git::https://github.com/camptocamp/devops-stack-module-minio?ref=v1.0.0"
+  source = "git::https://github.com/camptocamp/devops-stack-module-minio?ref=module_revamping"
+  # TODO Remove temporary source after we merged
 
   cluster_name     = module.kind.cluster_name
   base_domain      = module.kind.base_domain
   argocd_namespace = local.argocd_namespace
-  target_revision = "module_revamping"
+  target_revision  = "module_revamping" # TODO delete after we merged
 
   minio_buckets = [
     "thanos",
@@ -147,7 +165,8 @@ module "minio" {
 }
 
 module "thanos" {
-  source = "../devops-stack-module-thanos/kind"
+  # source = "git::https://github.com/camptocamp/devops-stack-module-thanos//kind?ref=v1.0.0"
+  source = "git::https://github.com/camptocamp/devops-stack-module-thanos//kind?ref=bucket_credentials_v2"
 
   cluster_name     = module.kind.cluster_name
   argocd_namespace = local.argocd_namespace
@@ -157,8 +176,8 @@ module "thanos" {
   metrics_storage = {
     bucket_name       = "thanos"
     endpoint          = module.minio.endpoint
-    access_key        = module.minio.access_key
-    secret_access_key = module.minio.secret_key
+    access_key        = "readwrite_user" # Name given to the read-write user created by the module MinIO.
+    secret_access_key = module.minio.readwrite_secret_key
   }
 
   thanos = {
@@ -169,7 +188,8 @@ module "thanos" {
 }
 
 module "prometheus-stack" {
-  source = "../devops-stack-module-kube-prometheus-stack/kind"
+  # source = "git::https://github.com/camptocamp/devops-stack-module-kube-prometheus-stack//kind?ref=v1.0.0"
+  source = "git::https://github.com/camptocamp/devops-stack-module-kube-prometheus-stack//kind?ref=variable_revamp"
 
   cluster_name     = module.kind.cluster_name
   argocd_namespace = local.argocd_namespace
@@ -179,8 +199,8 @@ module "prometheus-stack" {
   metrics_storage = {
     bucket_name       = "thanos"
     endpoint          = module.minio.endpoint
-    access_key        = module.minio.access_key
-    secret_access_key = module.minio.secret_key
+    access_key        = "readwrite_user" # Name given to the read-write user created by the module MinIO.
+    secret_access_key = module.minio.readwrite_secret_key
   }
 
   prometheus = {
@@ -198,7 +218,8 @@ module "prometheus-stack" {
 }
 
 module "loki-stack" {
-  source = "../devops-stack-module-loki-stack/k3s"
+  # source = "git::https://github.com/camptocamp/devops-stack-module-loki-stack//kind?ref=v1.0.0"
+  source = "git::https://github.com/camptocamp/devops-stack-module-loki-stack//kind?ref=bucket_credentials"
 
   cluster_name     = module.kind.cluster_name
   argocd_namespace = local.argocd_namespace
@@ -207,8 +228,8 @@ module "loki-stack" {
   logs_storage = {
     bucket_name       = "loki"
     endpoint          = module.minio.endpoint
-    access_key        = module.minio.access_key
-    secret_access_key = module.minio.secret_key
+    access_key        = "readwrite_user" # Name given to the read-write user created by the module MinIO.
+    secret_access_key = module.minio.readwrite_secret_key
   }
 
   depends_on = [module.prometheus-stack]
@@ -224,10 +245,134 @@ module "grafana" {
 
   grafana = {
     oidc = module.oidc.oidc
+    # We need to explicitly tell Grafana to ignore the self-signed certificate on the OIDC provider.
+    generic_oauth_extra_args = {
+      tls_skip_verify_insecure = true
+    }
   }
 
   depends_on = [module.prometheus-stack, module.loki-stack]
 }
 
+module "argocd" {
+  source = "git::https://github.com/camptocamp/devops-stack-module-argocd.git?ref=v1.0.0-alpha.1"
+
+  cluster_name   = module.kind.cluster_name
+  base_domain    = module.kind.base_domain
+  cluster_issuer = local.cluster_issuer
+
+  bootstrap_values = module.argocd_bootstrap.bootstrap_values
+
+  oidc = {
+    name         = "OIDC"
+    issuer       = module.oidc.oidc.issuer_url
+    clientID     = module.oidc.oidc.client_id
+    clientSecret = module.oidc.oidc.client_secret
+    requestedIDTokenClaims = {
+      groups = {
+        essential = true
+      }
+    }
+    requestedScopes = [
+      "openid", "profile", "email"
+    ]
+  }
+
+  # TODO Get Argo CD to work with OIDC from Keycloak
+  helm_values = [{
+    argo-cd = {
+      server = {
+        config = {
+          "oidc.tls.insecure.skip.verify" = true
+        }
+      }
+    }
+  }]
+
+  argocd = {
+    namespace                = local.argocd_namespace
+    server_secretkey         = module.argocd_bootstrap.argocd_server_secretkey
+    accounts_pipeline_tokens = module.argocd_bootstrap.argocd_accounts_pipeline_tokens
+    server_admin_password    = module.argocd_bootstrap.argocd_server_admin_password
+    domain                   = module.argocd_bootstrap.argocd_domain
+    admin_enabled            = true # Enable admin user while we cannot use OIDC
+  }
+
+  depends_on = [module.cert-manager, module.prometheus-stack, module.grafana]
+}
+
+# module "helloworld_apps" {
+#   source = "git::https://github.com/camptocamp/devops-stack-module-applicationset.git?ref=v1.1.0"
+
+#   depends_on = [module.argocd]
+
+#   name                   = "helloworld-apps"
+#   argocd_namespace       = local.argocd_namespace
+#   project_dest_namespace = "*"
+#   project_source_repo    = "https://github.com/camptocamp/devops-stack-helloworld-templates.git"
+
+#   generators = [
+#     {
+#       git = {
+#         repoURL  = "https://github.com/camptocamp/devops-stack-helloworld-templates.git"
+#         revision = "main"
+
+#         directories = [
+#           {
+#             path = "apps/*"
+#           }
+#         ]
+#       }
+#     }
+#   ]
+#   template = {
+#     metadata = {
+#       name = "{{path.basename}}"
+#     }
+
+#     spec = {
+#       project = "helloworld-apps"
+
+#       source = {
+#         repoURL        = "https://github.com/camptocamp/devops-stack-helloworld-templates.git"
+#         targetRevision = "main"
+#         path           = "{{path}}"
+
+#         helm = {
+#           valueFiles = []
+#           # The following value defines this global variables that will be available to all apps in apps/*
+#           # These are needed to generate the ingresses containing the name and base domain of the cluster.
+#           values = <<-EOT
+#             cluster:
+#               name: "${module.kind.cluster_name}"
+#               domain: "${module.kind.base_domain}"
+#             apps:
+#               traefik_dashboard: false
+#               grafana: true
+#               prometheus: true
+#               thanos: true
+#               alertmanager: true
+#           EOT
+#         }
+#       }
+
+#       destination = {
+#         name      = "in-cluster"
+#         namespace = "{{path.basename}}"
+#       }
+
+#       syncPolicy = {
+#         automated = {
+#           allowEmpty = false
+#           selfHeal   = true
+#           prune      = true
+#         }
+#         syncOptions = [
+#           "CreateNamespace=true"
+#         ]
+#       }
+#     }
+#   }
+# }
 
 ########
