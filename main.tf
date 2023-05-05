@@ -52,19 +52,6 @@ module "kind" {
 
   cluster_name       = local.cluster_name
   kubernetes_version = local.kubernetes_version
-
-  # TODO Add 3rd node as default in kind since there is a negligeable overhead
-  nodes = [
-    {
-      "platform" = "devops-stack"
-    },
-    {
-      "platform" = "devops-stack"
-    },
-    {
-      "platform" = "devops-stack"
-    }
-  ]
 }
 
 module "metallb" {
