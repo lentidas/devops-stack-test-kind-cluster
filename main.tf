@@ -184,6 +184,7 @@ module "thanos" {
 }
 
 module "kube-prometheus-stack" {
+  # TODO Point to the latest version after this PR is merged https://github.com/camptocamp/devops-stack-module-kube-prometheus-stack/pull/52
   # source = "git::https://github.com/camptocamp/devops-stack-module-kube-prometheus-stack//kind?ref=v2.2.0"
   source = "../../devops-stack-module-kube-prometheus-stack/kind"
 
@@ -206,6 +207,7 @@ module "kube-prometheus-stack" {
     oidc = module.oidc.oidc
   }
   grafana = {
+    enabled = true # This line can be removed after this PR is merged -> https://github.com/camptocamp/devops-stack-module-kube-prometheus-stack/pull/53
     oidc = module.oidc.oidc
   }
 
