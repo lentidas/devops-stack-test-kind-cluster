@@ -94,9 +94,7 @@ module "cert-manager" {
 }
 
 module "keycloak" {
-  # source = "git::https://github.com/camptocamp/devops-stack-module-keycloak?ref=v1.0.2"
-  source          = "git::https://github.com/camptocamp/devops-stack-module-keycloak?ref=ISDEVOPS-225-add-minio-policy"
-  target_revision = "ISDEVOPS-225-add-minio-policy"
+  source = "git::https://github.com/camptocamp/devops-stack-module-keycloak?ref=v1.1.0"
 
   cluster_name     = local.cluster_name
   base_domain      = local.base_domain
@@ -110,8 +108,7 @@ module "keycloak" {
 }
 
 module "oidc" {
-  # source = "git::https://github.com/camptocamp/devops-stack-module-keycloak//oidc_bootstrap?ref=v1.0.2"
-  source = "git::https://github.com/camptocamp/devops-stack-module-keycloak//oidc_bootstrap?ref=ISDEVOPS-225-add-minio-policy"
+  source = "git::https://github.com/camptocamp/devops-stack-module-keycloak//oidc_bootstrap?ref=v1.1.0"
 
   cluster_name   = local.cluster_name
   base_domain    = local.base_domain
@@ -123,9 +120,7 @@ module "oidc" {
 }
 
 module "minio" {
-  # source = "git::https://github.com/camptocamp/devops-stack-module-minio?ref=v1.0.0"
-  source          = "git::https://github.com/camptocamp/devops-stack-module-minio?ref=ISDEVOPS-225-add-oidc-config"
-  target_revision = "ISDEVOPS-225-add-oidc-config"
+  source = "git::https://github.com/camptocamp/devops-stack-module-minio?ref=v1.1.0"
 
   cluster_name     = local.cluster_name
   base_domain      = local.base_domain
@@ -194,9 +189,7 @@ module "thanos" {
 }
 
 module "kube-prometheus-stack" {
-  # TODO Point to the latest version after this PR is merged https://github.com/camptocamp/devops-stack-module-kube-prometheus-stack/pull/52
-  # source = "git::https://github.com/camptocamp/devops-stack-module-kube-prometheus-stack//kind?ref=v2.2.0"
-  source = "../../devops-stack-module-kube-prometheus-stack/kind"
+  source = "git::https://github.com/camptocamp/devops-stack-module-kube-prometheus-stack//kind?ref=v2.3.0"
 
   cluster_name     = local.cluster_name
   base_domain      = local.base_domain
@@ -217,8 +210,7 @@ module "kube-prometheus-stack" {
     oidc = module.oidc.oidc
   }
   grafana = {
-    enabled = true # This line can be removed after this PR is merged -> https://github.com/camptocamp/devops-stack-module-kube-prometheus-stack/pull/53
-    oidc    = module.oidc.oidc
+    oidc = module.oidc.oidc
   }
 
   dependency_ids = {
@@ -271,7 +263,7 @@ module "metrics_server" {
 
   helm_values = [{
     args = [
-      "--kubelet-insecure-tls"
+      "--kubelet-insecure-tls" # Ignore self-signed certificates of the KinD cluster
     ]
   }]
 
