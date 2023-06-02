@@ -2,7 +2,7 @@
 
 .terraform
 terraform.tfstate*
-secrets.yml
+*-config
 
 
 ### macOS ###
