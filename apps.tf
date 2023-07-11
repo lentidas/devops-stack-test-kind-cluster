@@ -1,5 +1,5 @@
 module "helloworld_apps" {
-  source = "git::https://github.com/camptocamp/devops-stack-module-applicationset.git?ref=v1.2.4"
+  source = "git::https://github.com/camptocamp/devops-stack-module-applicationset.git?ref=v2.0.0"
 
   dependency_ids = {
     argocd = module.argocd.id
@@ -47,11 +47,12 @@ module "helloworld_apps" {
               domain: "${local.base_domain}"
               issuer: "${local.cluster_issuer}"
             apps:
-              traefik_dashboard: false
+              keycloak: true
+              traefik: false
+              minio: true
               grafana: true
               prometheus: true
               thanos: true
-              alertmanager: true
           EOT
         }
       }

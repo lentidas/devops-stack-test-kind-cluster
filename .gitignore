@@ -3,6 +3,7 @@
 .terraform
 terraform.tfstate*
 *-config
+.terraform.lock.hcl
 
 
 ### macOS ###
