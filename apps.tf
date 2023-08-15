@@ -1,6 +1,6 @@
 module "helloworld_apps" {
-  # source = "git::https://github.com/camptocamp/devops-stack-module-applicationset.git?ref=v2.0.0"
-  source = "git::https://github.com/camptocamp/devops-stack-module-applicationset.git?ref=ISDEVOPS-238-fix-autosync"
+  source = "git::https://github.com/camptocamp/devops-stack-module-applicationset.git?ref=v2.0.1"
+  # source = "../../devops-stack-module-applicationset"
 
   dependency_ids = {
     argocd = module.argocd.id

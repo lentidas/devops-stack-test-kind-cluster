@@ -1,5 +1,5 @@
 locals {
-  kubernetes_version     = "v1.27.1"
+  kubernetes_version     = "v1.27.3"
   cluster_name           = "gh-kind-cluster"
   base_domain            = format("%s.nip.io", replace(module.traefik.external_ip, ".", "-"))
   cluster_issuer         = "ca-issuer"
