@@ -204,7 +204,7 @@ module "kube-prometheus-stack" {
 }
 
 module "argocd" {
-  source = "git::https://github.com/camptocamp/devops-stack-module-argocd.git?ref=v3.1.3"
+  source = "git::https://github.com/camptocamp/devops-stack-module-argocd.git?ref=v3.2.0"
   # source = "../../devops-stack-module-argocd"
 
   base_domain              = local.base_domain
