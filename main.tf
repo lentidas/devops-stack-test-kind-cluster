@@ -1,5 +1,6 @@
 module "kind" {
-  source = "git::https://github.com/camptocamp/devops-stack-module-cluster-kind.git?ref=v2.2.2"
+  source = "git::https://github.com/camptocamp/devops-stack-module-cluster-kind.git?ref=v2.3.0"
+  # source = "../../devops-stack-module-cluster-kind"
 
   cluster_name       = local.cluster_name
   kubernetes_version = local.kubernetes_version
@@ -7,19 +8,20 @@ module "kind" {
 
 module "metallb" {
   source = "git::https://github.com/camptocamp/devops-stack-module-metallb.git?ref=v1.0.1"
+  # source = "../../devops-stack-module-metallb"
 
   subnet = module.kind.kind_subnet
 }
 
 module "argocd_bootstrap" {
-  source = "git::https://github.com/camptocamp/devops-stack-module-argocd.git//bootstrap?ref=v3.1.3"
+  source = "git::https://github.com/camptocamp/devops-stack-module-argocd.git//bootstrap?ref=v3.2.0"
   # source = "../../devops-stack-module-argocd/bootstrap"
 
   depends_on = [module.kind]
 }
 
 module "traefik" {
-  source = "git::https://github.com/camptocamp/devops-stack-module-traefik.git//kind?ref=v2.0.1"
+  source = "git::https://github.com/camptocamp/devops-stack-module-traefik.git//kind?ref=v3.0.0"
   # source = "../../devops-stack-module-traefik/kind"
 
   cluster_name = local.cluster_name
@@ -204,7 +206,7 @@ module "kube-prometheus-stack" {
 }
 
 module "argocd" {
-  source = "git::https://github.com/camptocamp/devops-stack-module-argocd.git?ref=v3.1.3"
+  source = "git::https://github.com/camptocamp/devops-stack-module-argocd.git?ref=v3.2.0"
   # source = "../../devops-stack-module-argocd"
 
   base_domain              = local.base_domain
