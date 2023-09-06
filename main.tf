@@ -258,7 +258,7 @@ module "metrics_server" {
 
   source_repo            = "https://github.com/kubernetes-sigs/metrics-server.git"
   source_repo_path       = "charts/metrics-server"
-  source_target_revision = "metrics-server-helm-chart-3.10.0"
+  source_target_revision = "metrics-server-helm-chart-3.11.0"
   destination_namespace  = "kube-system"
 
   helm_values = [{
