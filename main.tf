@@ -252,7 +252,7 @@ module "argocd" {
 }
 
 module "metrics_server" {
-  source = "git::https://github.com/camptocamp/devops-stack-module-application.git?ref=v2.0.1"
+  source = "git::https://github.com/camptocamp/devops-stack-module-application.git?ref=v2.1.0"
   # source = "../../devops-stack-module-application"
 
   name             = "metrics-server"
