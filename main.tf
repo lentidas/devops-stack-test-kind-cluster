@@ -20,6 +20,23 @@ module "argocd_bootstrap" {
   depends_on = [module.kind]
 }
 
+module "metrics-server" {
+  # source = "git::https://github.com/camptocamp/devops-stack-module-metrics-server.git?ref=v1.0.0"
+  source = "git::https://github.com/camptocamp/devops-stack-module-metrics-server.git?ref=feat_first_implementation"
+
+  target_revision = "feat_first_implementation"
+
+  argocd_namespace = module.argocd_bootstrap.argocd_namespace
+
+  app_autosync = local.app_autosync
+
+  kubelet_insecure_tls = true
+
+  dependency_ids = {
+    argocd = module.argocd_bootstrap.id
+  }
+}
+
 module "traefik" {
   source = "git::https://github.com/camptocamp/devops-stack-module-traefik.git//kind?ref=v3.0.0"
   # source = "../../devops-stack-module-traefik/kind"
@@ -55,7 +72,7 @@ module "cert-manager" {
 }
 
 module "keycloak" {
-  source = "git::https://github.com/camptocamp/devops-stack-module-keycloak?ref=v2.0.1"
+  source = "git::https://github.com/camptocamp/devops-stack-module-keycloak.git?ref=v2.0.1"
   # source = "../../devops-stack-module-keycloak"
 
   cluster_name     = local.cluster_name
@@ -72,7 +89,7 @@ module "keycloak" {
 }
 
 module "oidc" {
-  source = "git::https://github.com/camptocamp/devops-stack-module-keycloak//oidc_bootstrap?ref=v2.0.1"
+  source = "git::https://github.com/camptocamp/devops-stack-module-keycloak.git//oidc_bootstrap?ref=v2.0.1"
 
   cluster_name   = local.cluster_name
   base_domain    = local.base_domain
@@ -93,7 +110,7 @@ module "oidc" {
 }
 
 module "minio" {
-  source = "git::https://github.com/camptocamp/devops-stack-module-minio?ref=v2.1.0"
+  source = "git::https://github.com/camptocamp/devops-stack-module-minio.git?ref=v2.1.0"
   # source = "../../devops-stack-module-minio"
 
   cluster_name     = local.cluster_name
@@ -116,8 +133,8 @@ module "minio" {
 }
 
 module "loki-stack" {
-  # source = "git::https://github.com/camptocamp/devops-stack-module-loki-stack//kind?ref=v4.0.2"
-  source = "../../devops-stack-module-loki-stack/kind"
+  source = "git::https://github.com/camptocamp/devops-stack-module-loki-stack.git//kind?ref=v4.0.2"
+  # source = "../../devops-stack-module-loki-stack/kind"
 
   argocd_namespace = module.argocd_bootstrap.argocd_namespace
 
@@ -136,7 +153,7 @@ module "loki-stack" {
 }
 
 module "thanos" {
-  source = "git::https://github.com/camptocamp/devops-stack-module-thanos//kind?ref=v2.4.0"
+  source = "git::https://github.com/camptocamp/devops-stack-module-thanos.git//kind?ref=v2.4.0"
   # source = "../../devops-stack-module-thanos/kind"
 
   # target_revision = "chart-autoupdate-patch-thanos"
@@ -170,7 +187,7 @@ module "thanos" {
 }
 
 module "kube-prometheus-stack" {
-  source = "git::https://github.com/camptocamp/devops-stack-module-kube-prometheus-stack//kind?ref=v7.0.0"
+  source = "git::https://github.com/camptocamp/devops-stack-module-kube-prometheus-stack.git//kind?ref=v7.0.0"
   # source = "../../devops-stack-module-kube-prometheus-stack/kind"
 
   # target_revision = "chart-autoupdate-major-kube-prometheus-stack"
@@ -251,27 +268,27 @@ module "argocd" {
   }
 }
 
-module "metrics_server" {
-  source = "git::https://github.com/camptocamp/devops-stack-module-application.git?ref=v2.0.1"
-  # source = "../../devops-stack-module-application"
+# module "metrics_server" {
+#   source = "git::https://github.com/camptocamp/devops-stack-module-application.git?ref=v2.0.1"
+#   # source = "../../devops-stack-module-application"
 
-  name             = "metrics-server"
-  argocd_namespace = module.argocd_bootstrap.argocd_namespace
+#   name             = "metrics-server"
+#   argocd_namespace = module.argocd_bootstrap.argocd_namespace
 
-  app_autosync = local.app_autosync
+#   app_autosync = local.app_autosync
 
-  source_repo            = "https://github.com/kubernetes-sigs/metrics-server.git"
-  source_repo_path       = "charts/metrics-server"
-  source_target_revision = "metrics-server-helm-chart-3.11.0"
-  destination_namespace  = "kube-system"
+#   source_repo            = "https://github.com/kubernetes-sigs/metrics-server"
+#   source_repo_path       = "charts/metrics-server"
+#   source_target_revision = "metrics-server-helm-chart-3.11.0"
+#   destination_namespace  = "kube-system"
 
-  helm_values = [{
-    args = [
-      "--kubelet-insecure-tls" # Ignore self-signed certificates of the KinD cluster
-    ]
-  }]
+#   helm_values = [{
+#     args = [
+#       "--kubelet-insecure-tls" # Ignore self-signed certificates of the KinD cluster
+#     ]
+#   }]
 
-  dependency_ids = {
-    argocd = module.argocd.id
-  }
-}
+#   dependency_ids = {
+#     argocd = module.argocd.id
+#   }
+# }
