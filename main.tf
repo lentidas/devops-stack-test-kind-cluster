@@ -21,10 +21,8 @@ module "argocd_bootstrap" {
 }
 
 module "metrics-server" {
-  # source = "git::https://github.com/camptocamp/devops-stack-module-metrics-server.git?ref=v1.0.0"
-  source = "git::https://github.com/camptocamp/devops-stack-module-metrics-server.git?ref=feat_first_implementation"
-
-  target_revision = "feat_first_implementation"
+  source = "git::https://github.com/camptocamp/devops-stack-module-metrics-server.git?ref=v1.0.0"
+  # source = "../../devops-stack-module-metrics-server"
 
   argocd_namespace = module.argocd_bootstrap.argocd_namespace
 
@@ -38,7 +36,7 @@ module "metrics-server" {
 }
 
 module "traefik" {
-  source = "git::https://github.com/camptocamp/devops-stack-module-traefik.git//kind?ref=v3.0.0"
+  source = "git::https://github.com/camptocamp/devops-stack-module-traefik.git//kind?ref=v3.1.0"
   # source = "../../devops-stack-module-traefik/kind"
 
   cluster_name = local.cluster_name
@@ -58,7 +56,7 @@ module "traefik" {
 }
 
 module "cert-manager" {
-  source = "git::https://github.com/camptocamp/devops-stack-module-cert-manager.git//self-signed?ref=v5.2.1"
+  source = "git::https://github.com/camptocamp/devops-stack-module-cert-manager.git//self-signed?ref=v5.3.0"
   # source = "../../devops-stack-module-cert-manager/self-signed"
 
   argocd_namespace = module.argocd_bootstrap.argocd_namespace
@@ -72,7 +70,7 @@ module "cert-manager" {
 }
 
 module "keycloak" {
-  source = "git::https://github.com/camptocamp/devops-stack-module-keycloak.git?ref=v2.0.1"
+  source = "git::https://github.com/camptocamp/devops-stack-module-keycloak.git?ref=v2.1.0"
   # source = "../../devops-stack-module-keycloak"
 
   cluster_name     = local.cluster_name
@@ -89,7 +87,7 @@ module "keycloak" {
 }
 
 module "oidc" {
-  source = "git::https://github.com/camptocamp/devops-stack-module-keycloak.git//oidc_bootstrap?ref=v2.0.1"
+  source = "git::https://github.com/camptocamp/devops-stack-module-keycloak.git//oidc_bootstrap?ref=v2.1.0"
 
   cluster_name   = local.cluster_name
   base_domain    = local.base_domain
@@ -110,7 +108,7 @@ module "oidc" {
 }
 
 module "minio" {
-  source = "git::https://github.com/camptocamp/devops-stack-module-minio.git?ref=v2.1.0"
+  source = "git::https://github.com/camptocamp/devops-stack-module-minio.git?ref=v2.2.0"
   # source = "../../devops-stack-module-minio"
 
   cluster_name     = local.cluster_name
@@ -133,7 +131,7 @@ module "minio" {
 }
 
 module "loki-stack" {
-  source = "git::https://github.com/camptocamp/devops-stack-module-loki-stack.git//kind?ref=v5.0.0"
+  source = "git::https://github.com/camptocamp/devops-stack-module-loki-stack.git//kind?ref=v5.1.0"
   # source = "../../devops-stack-module-loki-stack/kind"
 
   argocd_namespace = module.argocd_bootstrap.argocd_namespace
@@ -153,7 +151,7 @@ module "loki-stack" {
 }
 
 module "thanos" {
-  source = "git::https://github.com/camptocamp/devops-stack-module-thanos.git//kind?ref=v2.5.0"
+  source = "git::https://github.com/camptocamp/devops-stack-module-thanos.git//kind?ref=v2.6.0"
   # source = "../../devops-stack-module-thanos/kind"
 
   # target_revision = "chart-autoupdate-patch-thanos"
@@ -187,7 +185,7 @@ module "thanos" {
 }
 
 module "kube-prometheus-stack" {
-  source = "git::https://github.com/camptocamp/devops-stack-module-kube-prometheus-stack.git//kind?ref=v7.0.0"
+  source = "git::https://github.com/camptocamp/devops-stack-module-kube-prometheus-stack.git//kind?ref=v7.1.0"
   # source = "../../devops-stack-module-kube-prometheus-stack/kind"
 
   # target_revision = "chart-autoupdate-major-kube-prometheus-stack"
@@ -225,8 +223,8 @@ module "kube-prometheus-stack" {
 }
 
 module "argocd" {
-  source = "git::https://github.com/camptocamp/devops-stack-module-argocd.git?ref=v3.4.0"
-  # source = "../../devops-stack-module-argocd"
+  # source = "git::https://github.com/camptocamp/devops-stack-module-argocd.git?ref=v3.4.0"
+  source = "../../devops-stack-module-argocd"
 
   # target_revision = "chart-autoupdate-minor-argocd"
 
@@ -267,28 +265,3 @@ module "argocd" {
     kube-prometheus-stack = module.kube-prometheus-stack.id
   }
 }
-
-# module "metrics_server" {
-#   source = "git::https://github.com/camptocamp/devops-stack-module-application.git?ref=v2.0.1"
-#   # source = "../../devops-stack-module-application"
-
-#   name             = "metrics-server"
-#   argocd_namespace = module.argocd_bootstrap.argocd_namespace
-
-#   app_autosync = local.app_autosync
-
-#   source_repo            = "https://github.com/kubernetes-sigs/metrics-server"
-#   source_repo_path       = "charts/metrics-server"
-#   source_target_revision = "metrics-server-helm-chart-3.11.0"
-#   destination_namespace  = "kube-system"
-
-#   helm_values = [{
-#     args = [
-#       "--kubelet-insecure-tls" # Ignore self-signed certificates of the KinD cluster
-#     ]
-#   }]
-
-#   dependency_ids = {
-#     argocd = module.argocd.id
-#   }
-# }
