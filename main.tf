@@ -185,7 +185,7 @@ module "thanos" {
 }
 
 module "kube-prometheus-stack" {
-  source = "git::https://github.com/camptocamp/devops-stack-module-kube-prometheus-stack.git//kind?ref=v7.1.0"
+  source = "git::https://github.com/camptocamp/devops-stack-module-kube-prometheus-stack.git//kind?ref=v8.0.0"
   # source = "../../devops-stack-module-kube-prometheus-stack/kind"
 
   # target_revision = "chart-autoupdate-major-kube-prometheus-stack"
