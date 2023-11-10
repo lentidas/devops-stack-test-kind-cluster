@@ -7,15 +7,21 @@ module "kind" {
 }
 
 module "metallb" {
-  source = "git::https://github.com/camptocamp/devops-stack-module-metallb.git?ref=v1.2.0"
+  source = "git::https://github.com/camptocamp/devops-stack-module-metallb.git?ref=v1.3.0"
   # source = "../../devops-stack-module-metallb"
 
   subnet = module.kind.kind_subnet
 }
 
 module "argocd_bootstrap" {
-  source = "git::https://github.com/camptocamp/devops-stack-module-argocd.git//bootstrap?ref=v3.4.0"
+  source = "git::https://github.com/camptocamp/devops-stack-module-argocd.git//bootstrap?ref=v3.5.0"
   # source = "../../devops-stack-module-argocd/bootstrap"
+
+  argocd_projects = {
+    "${local.cluster_name}" = {
+      destination_cluster = "in-cluster"
+    }
+  }
 
   depends_on = [module.kind]
 }
@@ -25,6 +31,7 @@ module "metrics-server" {
   # source = "../../devops-stack-module-metrics-server"
 
   argocd_namespace = module.argocd_bootstrap.argocd_namespace
+  argocd_project   = local.cluster_name
 
   app_autosync = local.app_autosync
 
@@ -36,7 +43,7 @@ module "metrics-server" {
 }
 
 module "traefik" {
-  source = "git::https://github.com/camptocamp/devops-stack-module-traefik.git//kind?ref=v3.1.0"
+  source = "git::https://github.com/camptocamp/devops-stack-module-traefik.git//kind?ref=v4.1.0"
   # source = "../../devops-stack-module-traefik/kind"
 
   cluster_name = local.cluster_name
@@ -46,6 +53,7 @@ module "traefik" {
   base_domain = "placeholder.com"
 
   argocd_namespace = module.argocd_bootstrap.argocd_namespace
+  argocd_project   = local.cluster_name
 
   app_autosync           = local.app_autosync
   enable_service_monitor = local.enable_service_monitor
@@ -56,10 +64,11 @@ module "traefik" {
 }
 
 module "cert-manager" {
-  source = "git::https://github.com/camptocamp/devops-stack-module-cert-manager.git//self-signed?ref=v5.3.0"
+  source = "git::https://github.com/camptocamp/devops-stack-module-cert-manager.git//self-signed?ref=v7.0.1"
   # source = "../../devops-stack-module-cert-manager/self-signed"
 
   argocd_namespace = module.argocd_bootstrap.argocd_namespace
+  argocd_project   = local.cluster_name
 
   app_autosync           = local.app_autosync
   enable_service_monitor = local.enable_service_monitor
@@ -77,6 +86,7 @@ module "keycloak" {
   base_domain      = local.base_domain
   cluster_issuer   = local.cluster_issuer
   argocd_namespace = module.argocd_bootstrap.argocd_namespace
+  argocd_project   = local.cluster_name
 
   app_autosync = local.app_autosync
 
@@ -115,6 +125,7 @@ module "minio" {
   base_domain      = local.base_domain
   cluster_issuer   = local.cluster_issuer
   argocd_namespace = module.argocd_bootstrap.argocd_namespace
+  argocd_project   = local.cluster_name
 
   app_autosync           = local.app_autosync
   enable_service_monitor = local.enable_service_monitor
@@ -131,10 +142,11 @@ module "minio" {
 }
 
 module "loki-stack" {
-  source = "git::https://github.com/camptocamp/devops-stack-module-loki-stack.git//kind?ref=v5.1.0"
+  source = "git::https://github.com/camptocamp/devops-stack-module-loki-stack.git//kind?ref=v6.0.0"
   # source = "../../devops-stack-module-loki-stack/kind"
 
   argocd_namespace = module.argocd_bootstrap.argocd_namespace
+  argocd_project   = local.cluster_name
 
   app_autosync = local.app_autosync
 
@@ -151,15 +163,14 @@ module "loki-stack" {
 }
 
 module "thanos" {
-  source = "git::https://github.com/camptocamp/devops-stack-module-thanos.git//kind?ref=v2.6.0"
+  source = "git::https://github.com/camptocamp/devops-stack-module-thanos.git//kind?ref=v2.7.0"
   # source = "../../devops-stack-module-thanos/kind"
-
-  # target_revision = "chart-autoupdate-patch-thanos"
 
   cluster_name     = local.cluster_name
   base_domain      = local.base_domain
   cluster_issuer   = local.cluster_issuer
   argocd_namespace = module.argocd_bootstrap.argocd_namespace
+  argocd_project   = local.cluster_name
 
   app_autosync = local.app_autosync
 
@@ -185,15 +196,14 @@ module "thanos" {
 }
 
 module "kube-prometheus-stack" {
-  source = "git::https://github.com/camptocamp/devops-stack-module-kube-prometheus-stack.git//kind?ref=v7.1.0"
+  source = "git::https://github.com/camptocamp/devops-stack-module-kube-prometheus-stack.git//kind?ref=v8.0.0"
   # source = "../../devops-stack-module-kube-prometheus-stack/kind"
-
-  # target_revision = "chart-autoupdate-major-kube-prometheus-stack"
 
   cluster_name     = local.cluster_name
   base_domain      = local.base_domain
   cluster_issuer   = local.cluster_issuer
   argocd_namespace = module.argocd_bootstrap.argocd_namespace
+  argocd_project   = local.cluster_name
 
   app_autosync = local.app_autosync
 
@@ -223,16 +233,15 @@ module "kube-prometheus-stack" {
 }
 
 module "argocd" {
-  # source = "git::https://github.com/camptocamp/devops-stack-module-argocd.git?ref=v3.4.0"
-  source = "../../devops-stack-module-argocd"
-
-  # target_revision = "chart-autoupdate-minor-argocd"
+  source = "git::https://github.com/camptocamp/devops-stack-module-argocd.git?ref=v3.5.0"
+  # source = "../../devops-stack-module-argocd"
 
   base_domain              = local.base_domain
   cluster_name             = local.cluster_name
-  cluster_issuer           = local.cluster_issuer
+  cluster_issuer           = module.cert-manager.cluster_issuers.ca
   server_secretkey         = module.argocd_bootstrap.argocd_server_secretkey
   accounts_pipeline_tokens = module.argocd_bootstrap.argocd_accounts_pipeline_tokens
+  argocd_project           = local.cluster_name
 
   app_autosync = local.app_autosync
 
