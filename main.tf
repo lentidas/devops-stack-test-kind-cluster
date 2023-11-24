@@ -26,7 +26,7 @@ module "argocd_bootstrap" {
   depends_on = [module.kind]
 }
 
-module "metrics_server" {
+module "metrics-server" {
   source = "git::https://github.com/camptocamp/devops-stack-module-metrics-server.git?ref=v1.0.0"
   # source = "../../devops-stack-module-metrics-server"
 
