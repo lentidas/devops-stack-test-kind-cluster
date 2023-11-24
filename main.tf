@@ -14,7 +14,7 @@ module "metallb" {
 }
 
 module "argocd_bootstrap" {
-  source = "git::https://github.com/camptocamp/devops-stack-module-argocd.git//bootstrap?ref=v3.5.0"
+  source = "git::https://github.com/camptocamp/devops-stack-module-argocd.git//bootstrap?ref=v3.5.1"
   # source = "../../devops-stack-module-argocd/bootstrap"
 
   argocd_projects = {
@@ -26,7 +26,7 @@ module "argocd_bootstrap" {
   depends_on = [module.kind]
 }
 
-module "metrics-server" {
+module "metrics_server" {
   source = "git::https://github.com/camptocamp/devops-stack-module-metrics-server.git?ref=v1.0.0"
   # source = "../../devops-stack-module-metrics-server"
 
@@ -233,12 +233,12 @@ module "kube-prometheus-stack" {
 }
 
 module "argocd" {
-  source = "git::https://github.com/camptocamp/devops-stack-module-argocd.git?ref=v3.5.0"
+  source = "git::https://github.com/camptocamp/devops-stack-module-argocd.git?ref=v3.5.1"
   # source = "../../devops-stack-module-argocd"
 
   base_domain              = local.base_domain
   cluster_name             = local.cluster_name
-  cluster_issuer           = module.cert-manager.cluster_issuers.ca
+  cluster_issuer           = local.cluster_issuer
   server_secretkey         = module.argocd_bootstrap.argocd_server_secretkey
   accounts_pipeline_tokens = module.argocd_bootstrap.argocd_accounts_pipeline_tokens
   argocd_project           = local.cluster_name
