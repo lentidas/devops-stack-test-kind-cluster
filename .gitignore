@@ -1,9 +1,11 @@
 ### Ignored files and folders ###
 
 .terraform
-terraform.tfstate*
 *-config
 .terraform.lock.hcl
+terraform.tfstate*
+*.tfstate
+*.tfstate.backup
 
 
 ### macOS ###
