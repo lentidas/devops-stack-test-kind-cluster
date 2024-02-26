@@ -1,5 +1,5 @@
 module "kind" {
-  source = "git::https://github.com/camptocamp/devops-stack-module-cluster-kind.git?ref=v2.4.0"
+  source = "git::https://github.com/camptocamp/devops-stack-module-cluster-kind.git?ref=v2.5.0"
   # source = "../../devops-stack-module-cluster-kind"
 
   cluster_name       = local.cluster_name
