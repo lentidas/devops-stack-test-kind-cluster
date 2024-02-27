@@ -1,5 +1,5 @@
 module "kind" {
-  source = "git::https://github.com/camptocamp/devops-stack-module-cluster-kind.git?ref=v2.4.0"
+  source = "git::https://github.com/camptocamp/devops-stack-module-cluster-kind.git?ref=v2.5.0"
   # source = "../../devops-stack-module-cluster-kind"
 
   cluster_name       = local.cluster_name
@@ -14,7 +14,7 @@ module "metallb" {
 }
 
 module "argocd_bootstrap" {
-  source = "git::https://github.com/camptocamp/devops-stack-module-argocd.git//bootstrap?ref=v4.0.0"
+  source = "git::https://github.com/camptocamp/devops-stack-module-argocd.git//bootstrap?ref=v4.1.0"
   # source = "../../devops-stack-module-argocd/bootstrap"
 
   argocd_projects = {
@@ -42,14 +42,8 @@ module "metrics-server" {
 }
 
 module "traefik" {
-  source = "git::https://github.com/camptocamp/devops-stack-module-traefik.git//kind?ref=v5.0.0"
+  source = "git::https://github.com/camptocamp/devops-stack-module-traefik.git//kind?ref=v6.1.1"
   # source = "../../devops-stack-module-traefik/kind"
-
-  cluster_name = local.cluster_name
-
-  # TODO fix: the base domain is defined later. Proposal: remove redirection from traefik module and add it in dependent modules.
-  # For now random value is passed to base_domain. Redirections will not work before fix.
-  base_domain = "placeholder.com"
 
   argocd_project = local.cluster_name
 
@@ -76,11 +70,12 @@ module "cert-manager" {
 }
 
 module "keycloak" {
-  source = "git::https://github.com/camptocamp/devops-stack-module-keycloak.git?ref=v3.0.0"
+  source = "git::https://github.com/camptocamp/devops-stack-module-keycloak.git?ref=v3.1.0"
   # source = "../../devops-stack-module-keycloak"
 
   cluster_name   = local.cluster_name
   base_domain    = local.base_domain
+  subdomain      = local.subdomain
   cluster_issuer = local.cluster_issuer
   argocd_project = local.cluster_name
 
@@ -93,11 +88,12 @@ module "keycloak" {
 }
 
 module "oidc" {
-  source = "git::https://github.com/camptocamp/devops-stack-module-keycloak.git//oidc_bootstrap?ref=v3.0.0"
+  source = "git::https://github.com/camptocamp/devops-stack-module-keycloak.git//oidc_bootstrap?ref=v3.1.0"
   # source = "../../devops-stack-module-keycloak/oidc_bootstrap"
 
   cluster_name   = local.cluster_name
   base_domain    = local.base_domain
+  subdomain      = local.subdomain
   cluster_issuer = local.cluster_issuer
 
   user_map = {
@@ -115,11 +111,12 @@ module "oidc" {
 }
 
 module "minio" {
-  source = "git::https://github.com/camptocamp/devops-stack-module-minio.git?ref=v3.0.0"
+  source = "git::https://github.com/camptocamp/devops-stack-module-minio.git?ref=v3.1.0"
   # source = "../../devops-stack-module-minio"
 
   cluster_name   = local.cluster_name
   base_domain    = local.base_domain
+  subdomain      = local.subdomain
   cluster_issuer = local.cluster_issuer
   argocd_project = local.cluster_name
 
@@ -158,11 +155,12 @@ module "loki-stack" {
 }
 
 module "thanos" {
-  source = "git::https://github.com/camptocamp/devops-stack-module-thanos.git//kind?ref=v3.0.1"
+  source = "git::https://github.com/camptocamp/devops-stack-module-thanos.git//kind?ref=v3.3.0"
   # source = "../../devops-stack-module-thanos/kind"
 
   cluster_name   = local.cluster_name
   base_domain    = local.base_domain
+  subdomain      = local.subdomain
   cluster_issuer = local.cluster_issuer
   argocd_project = local.cluster_name
 
@@ -190,11 +188,12 @@ module "thanos" {
 }
 
 module "kube-prometheus-stack" {
-  source = "git::https://github.com/camptocamp/devops-stack-module-kube-prometheus-stack.git//kind?ref=v9.0.0"
+  source = "git::https://github.com/camptocamp/devops-stack-module-kube-prometheus-stack.git//kind?ref=v9.2.0"
   # source = "../../devops-stack-module-kube-prometheus-stack/kind"
 
   cluster_name   = local.cluster_name
   base_domain    = local.base_domain
+  subdomain      = local.subdomain
   cluster_issuer = local.cluster_issuer
   argocd_project = local.cluster_name
 
@@ -226,11 +225,12 @@ module "kube-prometheus-stack" {
 }
 
 module "argocd" {
-  source = "git::https://github.com/camptocamp/devops-stack-module-argocd.git?ref=v4.0.0"
+  source = "git::https://github.com/camptocamp/devops-stack-module-argocd.git?ref=v4.1.0"
   # source = "../../devops-stack-module-argocd"
 
   base_domain              = local.base_domain
   cluster_name             = local.cluster_name
+  subdomain                = local.subdomain
   cluster_issuer           = local.cluster_issuer
   server_secretkey         = module.argocd_bootstrap.argocd_server_secretkey
   accounts_pipeline_tokens = module.argocd_bootstrap.argocd_accounts_pipeline_tokens
