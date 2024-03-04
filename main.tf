@@ -42,7 +42,7 @@ module "metrics-server" {
 }
 
 module "traefik" {
-  source = "git::https://github.com/camptocamp/devops-stack-module-traefik.git//kind?ref=v6.1.1"
+  source = "git::https://github.com/camptocamp/devops-stack-module-traefik.git//kind?ref=v6.2.0"
   # source = "../../devops-stack-module-traefik/kind"
 
   argocd_project = local.cluster_name
