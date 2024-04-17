@@ -1,5 +1,5 @@
 locals {
-  kubernetes_version     = "v1.29.1"
+  kubernetes_version     = "v1.29.2"
   cluster_name           = "gh-kind-cluster"
   base_domain            = format("%s.nip.io", replace(module.traefik.external_ip, ".", "-"))
   subdomain              = ""
