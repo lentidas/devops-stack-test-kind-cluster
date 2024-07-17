@@ -135,7 +135,7 @@ module "minio" {
 }
 
 module "loki-stack" {
-  source = "git::https://github.com/camptocamp/devops-stack-module-loki-stack.git//kind?ref=v7.2.0"
+  source = "git::https://github.com/camptocamp/devops-stack-module-loki-stack.git//kind?ref=v8.1.0"
   # source = "../../devops-stack-module-loki-stack/kind"
 
   argocd_project = local.cluster_name
@@ -155,7 +155,7 @@ module "loki-stack" {
 }
 
 module "thanos" {
-  source = "git::https://github.com/camptocamp/devops-stack-module-thanos.git//kind?ref=v4.1.0"
+  source = "git::https://github.com/camptocamp/devops-stack-module-thanos.git//kind?ref=v5.0.0"
   # source = "../../devops-stack-module-thanos/kind"
 
   cluster_name   = local.cluster_name
@@ -188,7 +188,7 @@ module "thanos" {
 }
 
 module "kube-prometheus-stack" {
-  source = "git::https://github.com/camptocamp/devops-stack-module-kube-prometheus-stack.git//kind?ref=v10.1.0"
+  source = "git::https://github.com/camptocamp/devops-stack-module-kube-prometheus-stack.git//kind?ref=v11.1.0"
   # source = "../../devops-stack-module-kube-prometheus-stack/kind"
 
   cluster_name   = local.cluster_name
